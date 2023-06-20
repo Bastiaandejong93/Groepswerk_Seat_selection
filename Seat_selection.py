@@ -6,11 +6,13 @@ from tkinter import messagebox
 # Functie die wordt aangeroepen wanneer een stoel wordt geklikt
 def seat_click(row, seat):
     if seat_status[row][seat] == "empty":
+        # Als de stoel leeg is, markeer deze als geselecteerd
         seat_status[row][seat] = "selected"
-        seats[row][seat].configure(bg="green")
+        seats[row][seat].configure(bg="green")  # Verander de achtergrondkleur naar groen
     else:
+        # Als de stoel al geselecteerd is, maak deze leeg
         seat_status[row][seat] = "empty"
-        seats[row][seat].configure(bg="white")
+        seats[row][seat].configure(bg="white")  # Verander de achtergrondkleur naar wit
     root.update()
 
 # Functie voor het afrekenen van de geselecteerde stoelen
@@ -22,8 +24,10 @@ def checkout():
                 selected_seats.append((row, seat))
 
     if len(selected_seats) > 0:
+        # Als er geselecteerde stoelen zijn, toon het overzicht
         show_overview(selected_seats)
     else:
+        # Als er geen stoelen zijn geselecteerd, toon een waarschuwing
         messagebox.showwarning("No Seats", "You haven't selected any seats.")
 
 # Functie voor het weergeven van het overzicht van de bestelling
@@ -59,41 +63,40 @@ def show_overview(selected_seats):
 
 # Functie voor het verwerken van betaling
 def proceed_payment():
+    # Toon een bericht dat betaling op dit moment niet beschikbaar is
     messagebox.showinfo("Payment", "Payment currently not available. Please select 'Pay at the Counter'.")
 
 # Functie voor betalen bij de balie
 def pay_counter(selected_seats):
     for seat in selected_seats:
         row, col = seat
-        seats[row][col]["bg"] = "red"
-        seats[row][col]["state"] = "disabled"
+        seats[row][col]["bg"] = "red"  # Verander de achtergrondkleur naar rood
+        seats[row][col]["state"] = "disabled"  # Schakel de stoelknop uit
     messagebox.showinfo("Reservation", "Reservation Confirmed. Please pay at the counter.")
     save_reservation(selected_seats)
 
-# Functie voor terugkeren naar de vorige pagina
+# Functie voor het teruggaan naar de vorige pagina
 def go_back():
     root.quit()
 
-# Functie voor het laden van reserveringen uit het CSV-bestand
+# Functie voor het laden van bestaande reserveringen uit het CSV-bestand
 def load_reservations():
-    with open("reservations_final.csv", "r") as csvfile:
+    with open("reservations.csv", "r") as csvfile:
         reader = csv.reader(csvfile)
         reservations = list(reader)
-
-    # Disable de gereserveerde stoelen
+    # Loop door elke reservering en schakel de bijbehorende stoelknop uit
     for reservation in reservations:
         try:
             row = int(reservation[1])
             col = int(reservation[2])
-            seats[row][col].configure(state="disabled", bg="red")
+            seats[row][col].configure(state="disabled", bg="red")  # Schakel de stoelknop uit en verander de achtergrondkleur naar rood
         except (IndexError, ValueError):
             pass  # Als de reserveringsinformatie niet geldig is, slaan we het over
-
     return reservations
 
 # Functie voor het opslaan van de geselecteerde stoelen als reserveringen in het CSV-bestand
 def save_reservation(selected_seats):
-    with open("reservations_final.csv", "a", newline="") as csvfile:
+    with open("reservations.csv", "a", newline="") as csvfile:
         writer = csv.writer(csvfile)
         for seat in selected_seats:
             row, col = seat
@@ -103,6 +106,7 @@ def save_reservation(selected_seats):
 # GUI
 #######################################################
 
+# Creëer het hoofdvenster van de GUI
 root = tk.Tk()
 root.title("Cinema Seat Reservation")
 root.geometry("800x800")
@@ -111,9 +115,11 @@ root.configure(bg="grey")
 seat_rows = 10
 seat_columns = 10
 
+# Creëer het frame voor de stoelen
 seats_frame = tk.Frame(root, bg="gray")
 seats_frame.pack(fill="both", expand=True, padx=10, pady=10)
 
+# Maak een lijst om de status van de stoelen bij te houden
 seat_status = [["empty" for _ in range(seat_columns)] for _ in range(seat_rows)]
 seats = []
 
@@ -137,14 +143,19 @@ header_frame.pack(fill=tk.X)
 header_label = tk.Label(header_frame, text="Scherm", fg="white", bg="black")
 header_label.pack()
 
+# Configureer de roosterindeling
 root.grid_rowconfigure(seat_rows, weight=1)
 root.grid_columnconfigure(seat_columns-1, weight=1)
 
+# Maak de knoppen voor het afrekenen en terugkeren
 checkout_button = tk.Button(root, text="Checkout", command=checkout)
 checkout_button.pack(side="right", padx=5, pady=10)
 
 back_button = tk.Button(root, text="Terug", command=go_back)
 back_button.pack(side="left", padx=5, pady=10)
 
-load_reservations()  # Laad reserveringen en schakel gereserveerde stoelen uit
+# Laad bestaande reserveringen
+load_reservations()
+
+# Start de GUI
 root.mainloop()
